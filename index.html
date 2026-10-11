@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NqN | Downloader Đa Nền Tảng</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%234da3ff'/%3E%3Cstop offset='1' stop-color='%2322d3ee'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='4' y='4' width='56' height='56' rx='14' fill='%230b1728'/%3E%3Ccircle cx='32' cy='32' r='18' fill='url(%23g)'/%3E%3Cpath d='M32 21v16m0 0-7-7m7 7 7-7' stroke='%2307111f' stroke-width='4' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E" />
+  <style>
+    :root{
+      --bg:#07111f;
+      --bg2:#0b1728;
+      --card:rgba(255,255,255,.08);
+      --card2:rgba(255,255,255,.05);
+      --line:rgba(255,255,255,.12);
+      --text:#eaf2ff;
+      --muted:#9cb0cf;
+      --pri:#4da3ff;
+      --pri2:#22d3ee;
+      --ok:#22c55e;
+      --err:#ef4444;
+      --shadow:0 18px 50px rgba(0,0,0,.35);
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;overflow-x:hidden}
+    body{
+      min-height:100vh;
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(34,211,238,.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(77,163,255,.15), transparent 24%),
+        linear-gradient(135deg,var(--bg),var(--bg2));
+    }
+    .wrap{
+      width:calc(100% - 24px);
+      max-width:1120px;
+      margin:28px auto;
+      overflow-x:hidden;
+    }
+    .hero{
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
+      border:1px solid var(--line);
+      border-radius:32px;
+      padding:26px;
+      box-shadow:none;
+      backdrop-filter: blur(14px);
+      transition:border-color .22s ease;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.05);
+      color:#cfe5ff;
+      font-size:13px;
+      margin-bottom:14px;
+    }
+    h1{
+      margin:0;
+      font-size:clamp(28px,4vw,48px);
+      line-height:1.25;
+      letter-spacing:-.03em;
+    }
+    .neon-text{
+      background: linear-gradient(90deg, #60a5fa 0%, #22d3ee 20%, #a78bfa 40%, #f472b6 60%, #22d3ee 80%, #60a5fa 100%);
+      background-size: 220% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: neonFlow 3.8s linear infinite;
+      text-shadow:
+        0 0 8px rgba(96,165,250,.35),
+        0 0 18px rgba(34,211,238,.28),
+        0 0 30px rgba(167,139,250,.18);
+    }
+    @keyframes neonFlow{
+      0%{background-position: 0% center}
+      100%{background-position: 220% center}
+    }
+    .sub{
+      margin:12px 0 0;
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.7;
+      max-width:850px;
+    }
+    .panel{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns: minmax(0,1fr) auto;
+      gap:12px;
+      align-items:stretch;
+    }
+    .input-wrapper{
+      position:relative;
+      width:100%;
+    }
+    .input{
+      width:100%;
+      min-width:0;
+      min-height:58px;
+      border:none;
+      outline:none;
+      border-radius:18px;
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      border:1px solid rgba(255,255,255,.12);
+      padding:18px 18px 18px 18px;
+      padding-right:132px;
+      font-size:15px;
+      transition:.22s ease;
+      box-shadow: inset 0 0 0 1px transparent;
+    }
+    .input:focus{
+      border-color:rgba(77,163,255,.55);
+      box-shadow:0 0 0 4px rgba(77,163,255,.13);
+      transform:translateY(-1px);
+    }
+    .btn{
+      min-width:180px;
+      border:none;
+      cursor:pointer;
+      border-radius:18px;
+      padding:0 20px;
+      font-weight:700;
+      font-size:15px;
+      color:white;
+      background:linear-gradient(135deg,var(--pri),var(--pri2));
+      box-shadow:0 14px 35px rgba(34,211,238,.22);
+      transition:.22s ease;
+    }
+    .btn:hover{transform:translateY(-2px);filter:brightness(1.05)}
+    .btn:active{transform:translateY(0)}
+    .btn[disabled]{opacity:.65;cursor:not-allowed;transform:none}
+    .paste-btn{
+      position:absolute;
+      right:8px;
+      top:50%;
+      transform:translateY(-50%);
+      height:42px;
+      min-width:auto;
+      width:120px;
+      border:none;
+      cursor:pointer;
+      border-radius:14px;
+      padding:0 12px;
+      font-weight:800;
+      font-size:13px;
+      color:var(--text);
+      background:rgba(77,163,255,.12);
+      border:1px solid rgba(77,163,255,.25);
+      transition:.22s ease;
+    }
+    .paste-btn:hover{transform:translateY(-50%);filter:brightness(1.1);background:rgba(77,163,255,.18)}
+    .quick{
+      margin-top:14px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .chip{
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.05);
+      color:#d7e8ff;
+      padding:9px 12px;
+      border-radius:999px;
+      font-size:13px;
+    }
+
+    .layout{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:18px;
+    }
+    .info-card{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:18px;
+      align-items:start;
+    }
+    .info-card-header{
+      margin:0;
+    }
+    .info-card-content{
+      display:grid;
+      grid-template-columns: minmax(280px, 420px) minmax(0,1fr);
+      gap:18px;
+      align-items:start;
+    }
+    .info-side{
+      display:grid;
+      gap:14px;
+      min-width:0;
+    }
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.045));
+      border:1px solid var(--line);
+      border-radius:26px;
+      padding:18px;
+      box-shadow:none;
+      backdrop-filter: blur(14px);
+      transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+    }
+    .card:hover{
+      transform:translateY(-3px);
+      border-color:rgba(77,163,255,.24);
+      box-shadow:none;
+    }
+    .section-title{
+      font-size:15px;
+      font-weight:800;
+      margin:0 0 14px;
+      letter-spacing:.01em;
+    }
+    .muted{color:var(--muted)}
+    .meta-grid{
+      display:grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    .meta-item{
+      background:var(--card2);
+      border:1px solid rgba(255,255,255,.08);
+      padding:12px 14px;
+      border-radius:16px;
+      transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    .meta-item:hover{
+      transform:translateY(-2px);
+      border-color:rgba(77,163,255,.26);
+      box-shadow:none;
+    }
+    .meta-label{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:5px;
+    }
+    .meta-value{
+      font-size:14px;
+      word-break:break-word;
+      overflow-wrap:anywhere;
+    }
+
+    .status{
+      display:none;
+      margin-top:14px;
+      padding:14px 15px;
+      border-radius:16px;
+      font-size:14px;
+      border:1px solid transparent;
+    }
+    .status.show{display:block}
+    .status.loading{
+      background:rgba(77,163,255,.11);
+      border-color:rgba(77,163,255,.25);
+      color:#d9ecff;
+    }
+    .status.error{
+      background:rgba(239,68,68,.11);
+      border-color:rgba(239,68,68,.22);
+      color:#ffdada;
+    }
+    .status.success{
+      background:rgba(34,197,94,.10);
+      border-color:rgba(34,197,94,.22);
+      color:#dafbe4;
+    }
+
+    .preview{
+      width:100%;
+      border-radius:20px;
+      overflow:hidden;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.08);
+      min-height:220px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:var(--muted);
+      text-align:center;
+      padding:14px;
+      min-width:0;
+      transition:transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+    }
+    .preview:hover{
+      transform:translateY(-2px);
+      border-color:rgba(77,163,255,.24);
+      box-shadow:none;
+    }
+    .preview img,.preview video,.preview audio{
+      width:100%;
+      display:block;
+      border-radius:16px;
+    }
+    .preview img,
+    .preview video{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      object-position:center;
+    }
+    .preview audio{width:100%}
+
+    .results-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .count{
+      font-size:13px;
+      color:var(--muted);
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      white-space:nowrap;
+    }
+    .media-list{
+      display:grid;
+      grid-template-columns: repeat(var(--desktop-cols, 4), minmax(0, 1fr));
+      gap:14px;
+      min-width:0;
+    }
+    @media (max-width: 1100px){
+      .media-list{grid-template-columns: repeat(3, minmax(0, 1fr));}
+    }
+    .media-card{
+      background:linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.035));
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:22px;
+      padding:14px;
+      transition:.22s ease;
+    }
+    .media-card:hover{
+      transform:translateY(-4px);
+      border-color:rgba(77,163,255,.32);
+      box-shadow:none;
+    }
+    .topline{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .type{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:7px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.05);
+    }
+    .q{
+      color:#cfe5ff;
+      font-size:12px;
+      font-weight:700;
+      background:rgba(77,163,255,.13);
+      border:1px solid rgba(77,163,255,.18);
+      padding:7px 10px;
+      border-radius:999px;
+      text-align:right;
+    }
+    .media-preview{
+      width:100%;
+      border-radius:16px;
+      overflow:hidden;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      margin-bottom:12px;
+      min-height:170px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:var(--muted);
+      transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    .media-preview:hover{
+      transform:translateY(-2px);
+      border-color:rgba(77,163,255,.22);
+      box-shadow:none;
+    }
+    .media-preview.is-image{
+      min-height:220px;
+    }
+    .media-preview.is-video{
+      min-height:220px;
+    }
+    .media-preview img,
+    .media-preview video{
+      width:100%;
+      height:100%;
+      display:block;
+      aspect-ratio: 16 / 10;
+      object-fit:cover;
+      object-position:center;
+      background:#000;
+    }
+    .media-preview audio{
+      width:100%;
+      display:block;
+      padding:14px;
+    }
+    .media-info{
+      display:grid;
+      gap:8px;
+      margin-bottom:12px;
+      font-size:14px;
+    }
+    .row{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      color:var(--muted);
+    }
+    .row b{
+      color:var(--text);
+      font-weight:700;
+      text-align:right;
+      word-break:break-word;
+    }
+    .actions{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+      margin-top:auto;
+    }
+    .download-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:9px;
+      text-decoration:none;
+      border:none;
+      cursor:pointer;
+      min-height:46px;
+      border-radius:15px;
+      font-weight:800;
+      padding:12px 14px;
+      color:#fff;
+      background:linear-gradient(135deg,var(--pri),var(--pri2));
+      transition:.22s ease;
+      box-shadow:0 12px 26px rgba(34,211,238,.16);
+    }
+    .download-btn:hover{transform:translateY(-2px);filter:brightness(1.05)}
+    .copy-btn{
+      border:none;
+      cursor:pointer;
+      min-height:42px;
+      border-radius:14px;
+      font-weight:700;
+      padding:10px 14px;
+      color:var(--text);
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.1);
+      transition:.22s ease;
+      position:relative;
+      overflow:hidden;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      white-space:nowrap;
+      box-shadow:0 8px 16px rgba(0,0,0,.15);
+    }
+    .copy-btn::before{
+      content:'';
+      position:absolute;
+      top:0;
+      left:-100%;
+      width:100%;
+      height:100%;
+      background:linear-gradient(90deg, transparent, rgba(255,255,255,.28), transparent);
+    }
+    .copy-btn:hover::before{
+      animation:shine .65s ease-in-out;
+    }
+    .copy-btn:hover{
+      transform:translateY(-3px);
+      background:rgba(255,255,255,.12);
+      border-color:rgba(77,163,255,.35);
+      box-shadow:0 14px 24px rgba(77,163,255,.2);
+    }
+    .copy-btn.is-copied{
+      color:#dcfce7;
+      background:linear-gradient(135deg, #16a34a, #22c55e);
+      border-color:#22c55e;
+      box-shadow:0 14px 26px rgba(34,197,94,.28);
+    }
+    .empty{
+      padding:28px 18px;
+      color:var(--muted);
+      border:1px dashed rgba(255,255,255,.14);
+      border-radius:18px;
+      text-align:center;
+      background:rgba(255,255,255,.03);
+      word-wrap:break-word;
+      white-space:normal;
+    }
+    .media-list > .empty{
+      grid-column:1 / -1;
+      width:100%;
+      min-height:0;
+      display:block;
+      font-size:16px;
+      line-height:1.45;
+      padding:28px 18px;
+      margin:0;
+    }
+    .media-list.single-image-mode{
+      grid-template-columns:1fr;
+    }
+    .media-list.single-image-mode .media-card{
+      width:min(100%, 420px);
+      margin:0 auto;
+    }
+    .media-list.single-image-mode .media-preview.is-image{
+      min-height:320px;
+    }
+    .media-list.single-image-mode .media-preview.is-image img{
+      aspect-ratio:3 / 4;
+    }
+    .footer{
+      margin:18px 0 28px;
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .footer-link{
+      display:inline-block;
+      padding:14px 24px;
+      border-radius:14px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--text);
+      text-decoration:none;
+      font-weight:700;
+      font-size:16px;
+      cursor:pointer;
+      transition:.3s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    .footer-link::before{
+      content:'';
+      position:absolute;
+      top:0;
+      left:-100%;
+      width:100%;
+      height:100%;
+      background:linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent);
+    }
+    .footer-link:hover::before{
+      animation:shine 0.6s ease-in-out;
+    }
+    @keyframes shine{
+      0%{left:-100%}
+      100%{left:100%}
+    }
+    .footer-link:hover{
+      transform:translateY(-6px);
+      background:rgba(255,255,255,.15);
+      box-shadow:0 8px 20px rgba(77,163,255,.25);
+      border-color:rgba(77,163,255,.4);
+    }
+    .footer-link:active{
+      transform:translateY(-2px);
+    }
+
+    /* Hide scrollbar but keep scroll functionality */
+    .no-scrollbar {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;  /* Chrome, Safari and Opera */
+    }
+
+    .api-debug-card{
+      width:100%;
+      max-width:100%;
+      margin-top:18px;
+      margin-bottom:28px;
+      overflow:hidden;
+    }
+    .api-debug-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .api-debug-head .section-title{
+      margin:0;
+    }
+    .api-copy-btn{
+      min-height:36px;
+      padding:8px 12px;
+      border-radius:10px;
+      font-size:12px;
+      font-weight:700;
+    }
+    .api-debug-box{
+      width:100%;
+      max-width:100%;
+      max-height:300px;
+      overflow-x:auto;
+      overflow-y:auto;
+      white-space:pre;
+      overflow-wrap:normal;
+      word-break:normal;
+      background:rgba(0,0,0,.5);
+      padding:14px;
+      border-radius:12px;
+      font-size:11px;
+      color:#90ee90;
+      border:1px solid rgba(144,238,144,.15);
+      transition:transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+    }
+    .api-debug-box:hover{
+      transform:translateY(-2px);
+      border-color:rgba(77,163,255,.28);
+      box-shadow:none;
+    }
+    .api-copy-status{
+      display:none;
+      margin-top:10px;
+      font-size:13px;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--muted);
+      background:rgba(255,255,255,.04);
+    }
+    .api-copy-status.show{display:block}
+    .api-copy-status.success{
+      color:#dafbe4;
+      border-color:rgba(34,197,94,.3);
+      background:rgba(34,197,94,.12);
+    }
+    .api-copy-status.error{
+      color:#ffdada;
+      border-color:rgba(239,68,68,.3);
+      background:rgba(239,68,68,.12);
+    }
+
+    .scroll-top-btn{
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      z-index:999;
+      width:46px;
+      height:46px;
+      padding:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:none;
+      border-radius:999px;
+      cursor:pointer;
+      color:#fff;
+      font-size:22px;
+      line-height:1;
+      text-align:center;
+      background:linear-gradient(135deg,var(--pri),var(--pri2));
+      border:1px solid rgba(255,255,255,.24);
+      box-shadow:0 12px 24px rgba(34,211,238,.22);
+      opacity:0;
+      visibility:hidden;
+      transform:translateY(8px);
+      transition:opacity .2s ease, transform .2s ease, visibility .2s ease, filter .2s ease;
+    }
+    .scroll-top-btn.show{
+      opacity:1;
+      visibility:visible;
+      transform:translateY(0);
+    }
+    .scroll-top-btn:hover{filter:brightness(1.08)}
+    .scroll-top-btn:active{transform:translateY(1px)}
+
+    .info-card-empty{
+      display:none;
+    }
+    .info-card-empty.show{
+      display:grid;
+    }
+    .info-card-empty-head{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .info-card-empty-content{
+      text-align:center;
+      color:var(--muted);
+      font-size:16px;
+      line-height:1.6;
+      padding:28px;
+      border:1px dashed rgba(255,255,255,.14);
+      border-radius:18px;
+      background:rgba(255,255,255,.03);
+    }
+    @media (max-width: 920px){
+      .info-card{grid-template-columns:1fr}
+      .info-card-content{grid-template-columns:1fr}
+      .media-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media (max-width: 720px){
+      .wrap{width:min(100% - 14px, 1120px); margin:14px auto; overflow-x:hidden}
+      body{overflow-x:hidden}
+      .hero,.card{border-radius:22px}
+      .panel{grid-template-columns:1fr}
+      .btn{min-height:56px; width:100%}
+      .input{padding-right:110px}
+      .paste-btn{width:100px;height:40px;font-size:12px}
+      .footer-link{padding:10px 16px;font-size:14px}
+      .media-list{grid-template-columns:1fr}
+      .results-head{flex-direction:column;align-items:flex-start}
+      .sub{font-size:14px}
+      h1{font-size:30px}
+      .info-card{grid-template-columns:1fr}
+      .info-card-content{grid-template-columns:1fr}
+      .meta-grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="badge">⬇️ Downloader đa nền tảng</div>
+      <h1 class="neon-text">Tải video, ảnh, audio hỗ trợ nhiều nền tảng</h1>
+      <p class="sub">
+        Dán link vào ô bên dưới để lấy dữ liệu qua API.
+        <strong>Hỗ trợ các kiểu dữ liệu như video, story, audio, ảnh từ nhiều nền tảng khác nhau.</strong>.
+      </p>
+
+      <div class="panel">
+        <div class="input-wrapper">
+          <input id="urlInput" class="input" type="text" placeholder="Dán link cần tải...." />
+          <button id="pasteBtn" class="paste-btn" type="button">Dán link</button>
+        </div>
+        <button id="downloadBtn" class="btn">Lấy dữ liệu</button>
+      </div>
+
+      <div class="quick">
+        <span class="chip">Developed by </span>
+        <span class="chip">Hỗ trợ tải đa định dạng</span>
+      </div>
+
+      <div id="status" class="status"></div>
+    </section>
+
+    <section class="layout">
+      <main class="card info-card-empty show" id="infoCEmptyState">
+        <div class="info-card-empty-head">
+          <h2 class="section-title" style="margin:0">Thông tin nội dung</h2>
+        </div>
+        <div class="info-card-empty-content">
+          Chưa có dữ liệu, vui lòng cung cấp liên kết và ấn vào nút lấy dữ liệu
+        </div>
+      </main>
+      <section class="card info-card" id="infoCard" style="display:none">
+        <h2 class="section-title info-card-header">Thông tin nội dung</h2>
+        <div class="info-card-content">
+          <div class="preview" id="previewBox">
+            Chưa có dữ liệu để xem trước
+          </div>
+
+          <div class="info-side">
+            <div class="meta-grid">
+            <div class="meta-item">
+              <div class="meta-label">Nguồn</div>
+              <div class="meta-value" id="metaSource">—</div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Tổng media</div>
+              <div class="meta-value" id="metaCount">0</div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Tiêu đề</div>
+              <div class="meta-value" id="metaTitle">—</div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Tác giả</div>
+              <div class="meta-value" id="metaAuthor">—</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="results-head">
+          <h2 class="section-title" style="margin:0">Danh sách tải xuống</h2>
+          <div class="count" id="resultCount">0 mục</div>
+        </div>
+        <div id="mediaList" class="media-list">
+          <div class="empty">Chưa có dữ liệu, vui lòng cung cấp liên kết và ấn vào nút lấy dữ liệu</div>
+        </div>
+      </section>
+    </section>
+
+    <section class="card api-debug-card">
+      <div class="api-debug-head">
+        <h2 class="section-title">📋 API Response</h2>
+        <button type="button" class="copy-btn api-copy-btn" data-default-label="📋 Copy all logs" onclick="copyAllApiLogs(this)">📋 Copy all logs</button>
+      </div>
+      <pre id="apiDebugBox" class="api-debug-box no-scrollbar">Chưa có dữ liệu</pre>
+      <div id="apiCopyStatus" class="api-copy-status"></div>
+    </section>
+
+    <div class="footer">
+      <div style="display:flex;gap:12px;justify-content:center;margin-top:14px">
+        <a href="https://bolanqn.github.io/donate-for-me/" target="_blank" rel="noopener noreferrer" class="footer-link">💝 Donate</a>
+      </div>
+      <p style="margin-top:14px">© 2026 Developed by NqN. All rights reserved.</p>
+    </div>
+  </div>
+
+  <button id="scrollTopBtn" class="scroll-top-btn" type="button" aria-label="Lên đầu trang" title="Lên đầu trang">↑</button>
+
+  <script>
+    const API_BASE = "https://nqduan.id.vn/api/downall?url=";
+
+    const urlInput = document.getElementById("urlInput");
+    const pasteBtn = document.getElementById("pasteBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const statusBox = document.getElementById("status");
+    const metaSource = document.getElementById("metaSource");
+    const metaTitle = document.getElementById("metaTitle");
+    const metaAuthor = document.getElementById("metaAuthor");
+    const metaCount = document.getElementById("metaCount");
+    const mediaList = document.getElementById("mediaList");
+    const resultCount = document.getElementById("resultCount");
+    const previewBox = document.getElementById("previewBox");
+    const infoCEmptyState = document.getElementById("infoCEmptyState");
+    const infoCard = document.getElementById("infoCard");
+    const apiDebugBox = document.getElementById("apiDebugBox");
+    const apiCopyStatus = document.getElementById("apiCopyStatus");
+    const scrollTopBtn = document.getElementById("scrollTopBtn");
+
+    if("scrollRestoration" in history){
+      history.scrollRestoration = "manual";
+    }
+
+    function setStatus(type, message){
+      statusBox.className = "status show " + type;
+      statusBox.textContent = message;
+    }
+
+    function clearStatus(){
+      statusBox.className = "status";
+      statusBox.textContent = "";
+    }
+
+    function setApiCopyStatus(type, message){
+      apiCopyStatus.className = "api-copy-status show " + type;
+      apiCopyStatus.textContent = message;
+    }
+
+    function clearApiCopyStatus(){
+      apiCopyStatus.className = "api-copy-status";
+      apiCopyStatus.textContent = "";
+    }
+
+    function escapeHtml(text){
+      return String(text ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function normalizeMediaItem(item, index){
+      const rawType = String(item?.type || "unknown").toLowerCase();
+      const normalizedType = rawType === "photo" ? "image" : rawType;
+      const ext = guessExtension(item, normalizedType);
+
+      const normalized = {
+        id: index + 1,
+        rawType,
+        type: normalizedType,
+        url: item?.url || "",
+        quality: item?.quality || "Không rõ",
+        extension: ext,
+        no_watermark: Boolean(item?.no_watermark)
+      };
+      
+      console.log(`📦 Item ${index + 1}:`, { apiType: item?.type, quality: item?.quality, ext, url: item?.url?.substring(0, 50) });
+      
+      return normalized;
+    }
+
+
+    function guessExtensionFromUrl(url, type){
+      try{
+        const clean = String(url || "").split("?")[0];
+        const ext = clean.split(".").pop()?.toLowerCase();
+        if(ext && ext.length <= 5) return ext;
+      }catch(e){}
+      if(type === "audio") return "mp3";
+      if(type === "image") return "jpg";
+      if(type === "video") return "mp4";
+      return "bin";
+    }
+
+    function guessExtension(item, type){
+      const direct = guessExtensionFromUrl(item?.url || "", type);
+      const quality = String(item?.quality || "").toLowerCase();
+      const ext = String(item?.extension || "").toLowerCase();
+
+      if(type === "image"){
+        if(["jpg","jpeg","png","webp","gif"].includes(ext)) return ext;
+        if(quality.includes("jpeg")) return "jpeg";
+        if(quality.includes("jpg")) return "jpg";
+        if(quality.includes("png")) return "png";
+        if(quality.includes("webp")) return "webp";
+        if(["mp4","m4a","mp3","bin"].includes(direct)) return "jpg";
+        return direct || "jpg";
+      }
+
+      if(type === "audio"){
+        if(["mp3","m4a","wav","ogg","aac"].includes(ext)) return ext;
+        if(quality.includes("mp3")) return "mp3";
+        if(quality.includes("m4a")) return "m4a";
+        return direct || "mp3";
+      }
+
+      if(type === "video"){
+        if(["mp4","mov","webm","mkv"].includes(ext)) return ext;
+        const result = direct || "mp4";
+        console.log(`🎥 Video extension guessed: ext="${ext}" → result="${result}"`);
+        return result;
+      }
+
+      return ext || direct || "bin";
+    }
+
+
+    function getFileName(title, type, quality, extension, index){
+      const safeTitle = (title || "download")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^\w\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "_")
+        .slice(0, 70) || "download";
+      return `${safeTitle}_${type}_${quality || index}.${extension || "bin"}`;
+    }
+
+    function pickPreview(media){
+      if(!Array.isArray(media) || !media.length) return null;
+      const normalized = media.map((item, index) => normalizeMediaItem(item, index));
+      
+      console.log("🔍 pickPreview - Normalized media:", normalized);
+      
+      // Ưu tiên video thực tế (bằng extension)
+      const realVideo = normalized.find(i => {
+        const ext = String(i.extension || "").toLowerCase();
+        console.log(`  Item #${i.id}: type=${i.type}, ext=${ext}, url=${i.url.substring(0,60)}...`);
+        return ["mp4","mov","webm","mkv"].includes(ext);
+      });
+      if(realVideo) {
+        console.log("✅ Selected VIDEO by extension:", realVideo);
+        return realVideo;
+      }
+      
+      // Sau đó ảnh
+      const image = normalized.find(i => i.type === "image");
+      if(image) {
+        console.log("✅ Selected IMAGE:", image);
+        return image;
+      }
+      
+      // Cuối cùng audio
+      const audio = normalized.find(i => {
+        const ext = String(i.extension || "").toLowerCase();
+        return ["mp3","m4a","wav","ogg","aac"].includes(ext);
+      });
+      if(audio) {
+        console.log("✅ Selected AUDIO by extension:", audio);
+        return audio;
+      }
+      
+      console.log("✅ Selected first item:", normalized[0]);
+      return normalized[0];
+    }
+
+    function renderPreview(item){
+      if(!item){
+        previewBox.innerHTML = "Chưa có dữ liệu để xem trước";
+        return;
+      }
+
+      if(item.type === "image"){
+        previewBox.innerHTML = `<img src="${item.url}" alt="preview image" loading="lazy">`;
+        return;
+      }
+
+      if(item.type === "video"){
+        previewBox.innerHTML = `
+          <video controls playsinline preload="metadata">
+            <source src="${item.url}">
+            Trình duyệt không hỗ trợ video.
+          </video>`;
+        return;
+      }
+
+      if(item.type === "audio"){
+        previewBox.innerHTML = `
+          <div style="width:100%">
+            <div style="font-size:44px;margin-bottom:10px">🎵</div>
+            <audio controls preload="none">
+              <source src="${item.url}">
+              Trình duyệt không hỗ trợ audio.
+            </audio>
+          </div>`;
+        return;
+      }
+
+      previewBox.innerHTML = "Không có preview phù hợp";
+    }
+
+    function renderMeta(data){
+      const hasData = data && data.source && Array.isArray(data?.media) && data.media.length > 0;
+      
+      if(!hasData){
+        infoCEmptyState.classList.add("show");
+        infoCard.style.display = "none";
+        return;
+      }
+      
+      infoCEmptyState.classList.remove("show");
+      infoCard.style.display = "block";
+      
+      metaSource.textContent = data?.source || "Không rõ";
+      metaTitle.textContent = data?.title || "Không có tiêu đề";
+      metaAuthor.textContent = data?.author || "Không rõ";
+      metaCount.textContent = Array.isArray(data?.media) ? data.media.length : 0;
+    }
+
+    function mediaTypeLabel(type){
+      if(type === "video") return "Video";
+      if(type === "audio") return "Audio";
+      if(type === "image") return "Ảnh";
+      return type || "Khác";
+    }
+
+    function renderInlineMedia(item){
+      if(item.type === "image"){
+        return `<div class="media-preview is-image"><img src="${item.url}" alt="media image" loading="lazy"></div>`;
+      }
+
+      if(item.type === "video"){
+        return `
+          <div class="media-preview is-video">
+            <video controls playsinline preload="metadata">
+              <source src="${item.url}">
+              Trình duyệt không hỗ trợ video.
+            </video>
+          </div>`;
+      }
+
+      if(item.type === "audio"){
+        return `
+          <div class="media-preview">
+            <audio controls preload="none">
+              <source src="${item.url}">
+              Trình duyệt không hỗ trợ audio.
+            </audio>
+          </div>`;
+      }
+
+      return `<div class="media-preview">Không có xem trước</div>`;
+    }
+
+    function renderMediaList(data){
+      const list = Array.isArray(data?.media) ? data.media.map(normalizeMediaItem) : [];
+      resultCount.textContent = `${list.length} mục`;
+
+      const isSingleImage = list.length === 1 && list[0]?.type === "image";
+      mediaList.classList.toggle("single-image-mode", isSingleImage);
+
+      // Desktop: if fewer than 4 items, stretch them to fill the row.
+      const desktopCols = isSingleImage ? 1 : Math.max(1, Math.min(4, list.length || 1));
+      mediaList.style.setProperty("--desktop-cols", String(desktopCols));
+
+      if(!list.length){
+        mediaList.innerHTML = `<div class="empty">Không có media nào trong phản hồi API.</div>`;
+        return;
+      }
+
+      mediaList.innerHTML = list.map((item, i) => {
+        const filename = getFileName(data.title, item.type, item.quality, item.extension, i + 1);
+        return `
+          <article class="media-card">
+            <div class="topline">
+              <span class="type">${escapeHtml(mediaTypeLabel(item.type))}</span>
+              <span class="q">${escapeHtml(item.quality)}</span>
+            </div>
+
+            ${renderInlineMedia(item)}
+
+            <div class="media-info">
+              <div class="row"><span>Định dạng</span><b>${escapeHtml(item.extension || "—")}</b></div>
+              <div class="row"><span>Thứ tự</span><b>#${item.id}</b></div>
+            </div>
+
+            <div class="actions">
+              <a class="download-btn" href="${item.url}" download="${filename}" target="_blank" rel="noopener noreferrer">
+                Xem ngay
+              </a>
+              <button class="copy-btn" type="button" data-default-label="📋 Copy liên kết" onclick="copyMediaLink(this)">
+                📋 Copy liên kết
+              </button>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function setCopiedState(button){
+      if(!button) return;
+      const defaultLabel = button.dataset.defaultLabel || button.textContent;
+      button.dataset.defaultLabel = defaultLabel;
+      button.classList.add("is-copied");
+      button.textContent = "✓ Đã copy";
+      clearTimeout(button._copyTimer);
+      button._copyTimer = setTimeout(() => {
+        button.classList.remove("is-copied");
+        button.textContent = defaultLabel;
+      }, 1600);
+    }
+
+    function fallbackCopyText(text){
+      const temp = document.createElement("textarea");
+      temp.value = text;
+      temp.setAttribute("readonly", "");
+      temp.style.position = "fixed";
+      temp.style.opacity = "0";
+      temp.style.pointerEvents = "none";
+      document.body.appendChild(temp);
+      temp.select();
+      temp.setSelectionRange(0, text.length);
+      const ok = document.execCommand("copy");
+      document.body.removeChild(temp);
+      return ok;
+    }
+
+    function copyMediaLink(button){
+      try{
+        const card = button?.closest(".media-card");
+        const viewBtn = card?.querySelector(".download-btn");
+        const text = String(viewBtn?.href || "").trim();
+        if(!text){
+          setStatus("error", "Không có liên kết để copy.");
+          return;
+        }
+
+        const done = () => {
+          setStatus("success", "Đã copy liên kết của nút Xem ngay.");
+          setCopiedState(button);
+        };
+
+        if(navigator.clipboard && window.isSecureContext){
+          navigator.clipboard.writeText(text)
+            .then(done)
+            .catch(() => {
+              if(fallbackCopyText(text)) done();
+              else setStatus("error", "Không thể copy tự động. Hãy copy thủ công.");
+            });
+          return;
+        }
+
+        if(fallbackCopyText(text)) done();
+        else setStatus("error", "Không thể copy tự động. Hãy copy thủ công.");
+      }catch(e){
+        setStatus("error", "Liên kết không hợp lệ.");
+      }
+    }
+    window.copyMediaLink = copyMediaLink;
+
+    function copyAllApiLogs(button){
+      const logs = String(apiDebugBox?.textContent || "").trim();
+      if(!logs || logs === "Chưa có dữ liệu"){
+        setApiCopyStatus("error", "Chưa có logs API để copy.");
+        return;
+      }
+
+      navigator.clipboard.writeText(logs)
+        .then(() => {
+          setApiCopyStatus("success", "Đã copy toàn bộ logs API.");
+          setCopiedState(button);
+        })
+        .catch(() => setApiCopyStatus("error", "Không thể copy logs tự động. Hãy copy thủ công."));
+    }
+    window.copyAllApiLogs = copyAllApiLogs;
+
+    function openNow(encodedUrl){
+      try{
+        const text = decodeURIComponent(encodedUrl);
+        window.open(text, "_blank", "noopener,noreferrer");
+      }catch(e){
+        setStatus("error", "Không mở được link.");
+      }
+    }
+    window.openNow = openNow;
+
+    async function pasteFromClipboard(){
+      try{
+        const text = await navigator.clipboard.readText();
+        if(!text || !text.trim()){
+          setStatus("error", "Clipboard hiện chưa có link.");
+          return;
+        }
+        urlInput.value = text.trim();
+        setStatus("success", "Đã dán link từ clipboard.");
+      }catch(e){
+        setStatus("error", "Trình duyệt không cho đọc clipboard. Hãy dán thủ công.");
+      }
+    }
+
+    async function fetchData(){
+      const inputUrl = urlInput.value.trim();
+      if(!inputUrl){
+        setStatus("error", "Vui lòng nhập link cần tải.");
+        urlInput.focus();
+        return;
+      }
+
+      // Auto clear input on each fetch click
+      urlInput.value = "";
+
+      clearStatus();
+      clearApiCopyStatus();
+      setStatus("loading", "Đang gọi API và xử lý dữ liệu...");
+      downloadBtn.disabled = true;
+      downloadBtn.textContent = "Đang xử lý...";
+
+      try{
+        const apiUrl = API_BASE + encodeURIComponent(inputUrl);
+        const res = await fetch(apiUrl);
+        const json = await res.json();
+
+        // Hiển thị toàn bộ API response để debug
+        apiDebugBox.textContent = JSON.stringify(json, null, 2);
+        console.log("📥 API Response:", json);
+
+        if(!res.ok){
+          throw new Error(json?.message || "API phản hồi lỗi.");
+        }
+
+        if(!json?.success || !json?.data){
+          throw new Error(json?.message || "Không lấy được dữ liệu hợp lệ.");
+        }
+
+        const data = json.data;
+        renderMeta(data);
+        renderMediaList(data);
+        
+        const selectedPreview = pickPreview(data.media);
+        console.log("🎬 Final selected preview:", selectedPreview);
+        renderPreview(selectedPreview);
+        
+        setStatus("success", `Lấy dữ liệu thành công từ nguồn: ${data.source || "Không rõ"}.`);
+      }catch(error){
+        mediaList.innerHTML = `<div class="empty">Không thể tải dữ liệu. Hãy kiểm tra lại link hoặc API.</div>`;
+        renderMeta({source:"—", title:"—", author:"—", media:[]});
+        renderPreview(null);
+        resultCount.textContent = "0 mục";
+        setStatus("error", error?.message || "Đã có lỗi xảy ra.");
+      }finally{
+        downloadBtn.disabled = false;
+        downloadBtn.textContent = "Lấy dữ liệu";
+      }
+    }
+
+    pasteBtn.addEventListener("click", pasteFromClipboard);
+    downloadBtn.addEventListener("click", fetchData);
+    urlInput.addEventListener("keydown", (e) => {
+      if(e.key === "Enter") fetchData();
+    });
+
+    function toggleScrollTopButton(){
+      const shouldShow = window.scrollY > 220;
+      scrollTopBtn.classList.toggle("show", shouldShow);
+    }
+
+    scrollTopBtn.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    window.addEventListener("scroll", toggleScrollTopButton, { passive: true });
+    window.addEventListener("load", () => {
+      window.scrollTo(0, 0);
+      toggleScrollTopButton();
+    });
+    window.addEventListener("pageshow", () => {
+      window.scrollTo(0, 0);
+      toggleScrollTopButton();
+    });
+
+    // Initialize
+    renderMeta({});
+
+    // Demo placeholder
+    urlInput.value = "";
+  </script>
+</body>
+</html>
